@@ -1,0 +1,88 @@
+{
+  "networks": {
+    "sepolia": {
+      "chainId": 11155111,
+      "name": "Sepolia Testnet",
+      "tokens": {
+        "ETH": {
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "decimals": 18,
+          "tokenAddress": "0x0000000000000000000000000000000000000000",
+          "priceFeedAddress": "0x694AA1769357215DE4FAC081bf1f309aDC325306",
+          "description": "ETH/USD Price Feed"
+        },
+        "BTC": {
+          "name": "Bitcoin",
+          "symbol": "BTC",
+          "decimals": 8,
+          "tokenAddress": "0x835ef3b3d6fb94b98bf0a3f5390668e4b83731c5",
+          "priceFeedAddress": "0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43",
+          "description": "BTC/USD Price Feed (Note: BTC token contract address needs to be updated)"
+        },
+        "USDC": {
+          "name": "USD Coin",
+          "symbol": "USDC",
+          "decimals": 6,
+          "tokenAddress": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+          "priceFeedAddress": "0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E",
+          "description": "USDC/USD Price Feed"
+        }
+      }
+    },
+    "mainnet": {
+      "chainId": 1,
+      "name": "Ethereum Mainnet",
+      "tokens": {
+        "ETH": {
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "decimals": 18,
+          "tokenAddress": "0x0000000000000000000000000000000000000000",
+          "priceFeedAddress": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+          "description": "ETH/USD Price Feed"
+        },
+        "BTC": {
+          "name": "Bitcoin",
+          "symbol": "BTC",
+          "decimals": 8,
+          "tokenAddress": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+          "priceFeedAddress": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+          "description": "BTC/USD Price Feed (WBTC)"
+        },
+        "USDC": {
+          "name": "USD Coin",
+          "symbol": "USDC",
+          "decimals": 6,
+          "tokenAddress": "0xA0b86a33E6441b8C4505B7C0c6C4B0c0c6C4B0c0",
+          "priceFeedAddress": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+          "description": "USDC/USD Price Feed"
+        },
+        "USDT": {
+          "name": "Tether USD",
+          "symbol": "USDT",
+          "decimals": 6,
+          "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "priceFeedAddress": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+          "description": "USDT/USD Price Feed"
+        }
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Token contract addresses and Chainlink price feed addresses for NFT auction system",
+    "lastUpdated": "2025-08-17",
+    "sources": {
+      "chainlink": "https://docs.chain.link/data-feeds/price-feeds/addresses",
+      "etherscan": "https://etherscan.io/",
+      "sepolia_etherscan": "https://sepolia.etherscan.io/"
+    },
+    "notes": [
+      "ETH使用address(0)作为合约地址",
+      "所有价格预言机都兼容Chainlink AggregatorV3Interface接口",
+      "生产环境使用前请在官方渠道验证所有地址",
+      "部分测试代币地址可能需要根据实际部署情况进行更新"
+    ]
+  }
+}

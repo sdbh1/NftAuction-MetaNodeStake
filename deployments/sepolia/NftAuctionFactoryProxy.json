@@ -1,0 +1,19 @@
+{
+  "address": "0x85AAE2E14C10e3fAefbcB5D93e162405bA299A85",
+  "abi": [
+    "error InvalidInitialization()",
+    "error NotInitializing()",
+    "error ReentrancyGuardReentrantCall()",
+    "event AuctionCreated(address indexed,uint256)",
+    "event Initialized(uint64)",
+    "function auctionMap(uint256) view returns (address)",
+    "function auctions(uint256) view returns (address)",
+    "function createAuction(uint256,uint256,address,uint256) returns (address)",
+    "function getAuction(uint256) view returns (address)",
+    "function getAuctions() view returns (address[])",
+    "function initialize(address)",
+    "function onERC721Received(address,address,uint256,bytes) returns (bytes4)"
+  ],
+  "args": [],
+  "numDeployments": 1
+}
