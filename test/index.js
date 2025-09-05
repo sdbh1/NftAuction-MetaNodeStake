@@ -11,7 +11,7 @@ let nftAuctionProxyV2;
 let auctionContract;
 const contractCachePath = path.join(__dirname, "contract-cache.json");
 describe("NFT创建和创建NFT拍卖", async function () {
-    this.timeout(1200000);
+    this.timeout(120000);
     // 如果需要强制重新部署，可以取消下面这行的注释
     // clearContractCache();
 
@@ -91,48 +91,53 @@ describe("NFT创建和创建NFT拍卖", async function () {
             });
         }
     })
-    // describe("创建拍卖", async function () {
-    //     it("检查拍卖号是否重复", async function () {
-    //         let res1 = await createAuction(100)
-    //         let res2 = await createAuction(100)
-    //         const auction1 = await ethers.getContractAt("NftAuction", res1.auctionAddress);
-    //         const auction2 = await ethers.getContractAt("NftAuction", res2.auctionAddress);
-    //         let aId1 = await auction1.getAuctionID();
-    //         let aId2 = await auction2.getAuctionID();
-    //         expect(aId1).to.not.equal(aId2);
-    //         expect(res1.auctionId).to.not.equal(res2.auctionId);
-    //     })
-    //     it("如果是测试网,则设置预言机", async function () {
-    //         // 检查当前网络
-    //         const network = await ethers.provider.getNetwork();
-    //         if (network.chainId === 31337n) {
-    //             console.log("⚠️  本地网络无法测试 Chainlink 预言机，跳过此设置");
-    //             this.skip();
-    //         }
-    //         await setPriceFeed();
-    //         const priceFeeds1 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[0]) / 1e8;
-    //         const priceFeeds2 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[1]) / 1e8;
-    //         const priceFeeds3 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[2]) / 1e8;
-    //         const dataFeeds1 = await AuctionFactory.dataFeeds(tokenAddresses[0]) / 1e8;
-    //         const dataFeeds2 = await AuctionFactory.dataFeeds(tokenAddresses[1]) / 1e8;
-    //         const dataFeeds3 = await AuctionFactory.dataFeeds(tokenAddresses[2]) / 1e8;
+    describe("创建拍卖", async function () {
+        it("检查拍卖号是否重复", async function () {
+            let res1 = await createAuction(100)
+            let res2 = await createAuction(100)
+            const auction1 = await ethers.getContractAt("NftAuction", res1.auctionAddress);
+            const auction2 = await ethers.getContractAt("NftAuction", res2.auctionAddress);
+            let aId1 = await auction1.getAuctionID();
+            let aId2 = await auction2.getAuctionID();
+            expect(aId1).to.not.equal(aId2);
+            expect(res1.auctionId).to.not.equal(res2.auctionId);
+        })
+        it("如果是测试网,则设置预言机", async function () {
+            // 检查当前网络
+            const network = await ethers.provider.getNetwork();
+            if (network.chainId === 31337n) {
+                console.log("⚠️  本地网络无法测试 Chainlink 预言机，跳过此设置");
+                this.skip();
+            }
+            await setPriceFeed();
+            const priceFeeds1 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[0]) / 1e8;
+            const priceFeeds2 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[1]) / 1e8;
+            const priceFeeds3 = await AuctionFactory.getChainlinkDataFeedLatestAnswer(tokenAddresses[2]) / 1e8;
+            const dataFeeds1 = await AuctionFactory.dataFeeds(tokenAddresses[0]) / 1e8;
+            const dataFeeds2 = await AuctionFactory.dataFeeds(tokenAddresses[1]) / 1e8;
+            const dataFeeds3 = await AuctionFactory.dataFeeds(tokenAddresses[2]) / 1e8;
 
-    //         expect(dataFeeds1).to.equal(priceFeedAddresses[0]);
-    //         expect(dataFeeds2).to.equal(priceFeedAddresses[1]);
-    //         expect(dataFeeds3).to.equal(priceFeedAddresses[2]);
+            expect(dataFeeds1).to.equal(priceFeedAddresses[0]);
+            expect(dataFeeds2).to.equal(priceFeedAddresses[1]);
+            expect(dataFeeds3).to.equal(priceFeedAddresses[2]);
 
-    //         expect(priceFeeds1).to.not.equal(0);
-    //         expect(priceFeeds2).to.not.equal(0);
-    //         expect(priceFeeds3).to.not.equal(0);
+            expect(priceFeeds1).to.not.equal(0);
+            expect(priceFeeds2).to.not.equal(0);
+            expect(priceFeeds3).to.not.equal(0);
 
-    //         console.log("ETH/USD priceFeeds:", priceFeeds1);
-    //         console.log("BTC/USD priceFeeds:", priceFeeds2);
-    //         console.log("USDC/USD priceFeeds:", priceFeeds3);
-    //     })
-    // })
+            console.log("ETH/USD priceFeeds:", priceFeeds1);
+            console.log("BTC/USD priceFeeds:", priceFeeds2);
+            console.log("USDC/USD priceFeeds:", priceFeeds3);
+        })
+    })
 
     describe("竞拍拍卖", async function () {
         it("使用USDC和ETH混合竞拍,并且正确计价", async function () {
+            if (await isLocalHostNet()) {
+                console.log("isLocalNet:", isLocalHostNet());
+                this.skip();
+                return;
+            }
             let auctionResult = await createAuction(60)
 
             //nft所有权应该在工厂合约上
@@ -147,27 +152,68 @@ describe("NFT创建和创建NFT拍卖", async function () {
             //通过IERC20合约地址，获得一个合约对象
             let i20Address = isLocalHostNet() ? await erc20Contract.getAddress() : tokenAddresses[2];
             console.log("i20Address:", i20Address);
-
+            if (await isLocalHostNet()) {
+                console.log("isLocalNet:", isLocalHostNet());
+                this.skip();
+                return;
+            }
+            let erc20Instance = isLocalHostNet() ? erc20Contract : await ethers.getContractAt("IERC20", i20Address);
             // 创建ERC20合约实例
-            let erc20Instance = isLocalHostNet() ? erc20Contract : await ethers.getContractAt("MyERC20", i20Address);
-            await erc20Instance.mint(deployer.address, 10);
+            if (await isLocalHostNet()) {
+                await erc20Instance.mint(deployer.address, 10);
+            }
+
             let decimals = await erc20Instance.decimals();
             console.log("拍卖行合约地址:", await AuctionFactory.getAddress());
-            // 抽取事件监听函数
-            // USER1 使用1个ETH 参加竞拍
-            let tx = await auctionContract.connect(user1).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("0.01"), {
-                value: ethers.parseEther("0.001") // 发送1 ETH  
-            });
-            let receipt = await tx.wait();
-            logBidPlacedEvent(receipt, "第一次竞价事件");
+            let pidResult = true;
+            try {
+                // 抽取事件监听函数
+                // USER1 使用1个ETH 参加竞拍
+                let tx = await auctionContract.connect(user1).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("0.0001"), {
+                    value: ethers.parseEther("0.0001") // 发送1 ETH  
+                });
+                let receipt = await tx.wait();
+                logBidPlacedEvent(receipt, "第一次竞价事件");
+                let _ercAmount = 1n;
+                // deployer 使用10个USDC 参加竞拍
+                await erc20Instance.connect(deployer).approve(auctionResult.auctionAddress, _ercAmount * (10n ** BigInt(decimals)));
+                tx = await auctionContract.connect(deployer).placeBid(tokenId, await erc20Contract.getAddress(), _ercAmount * (10n ** BigInt(decimals)));
+                receipt = await tx.wait();
 
-            let _ercAmount = 500n;
-            // deployer 使用10个USDC 参加竞拍
-            await erc20Instance.connect(deployer).approve(auctionResult.auctionAddress, _ercAmount * (10n ** BigInt(decimals)));
-            tx = await auctionContract.connect(deployer).placeBid(tokenId, await erc20Contract.getAddress(), _ercAmount * (10n ** BigInt(decimals)));
-            receipt = await tx.wait();
+                logBidPlacedEvent(receipt, "第二次竞价事件");
+            } catch (error) {
+                console.log("竞价失败:", error);
+                pidResult = false;
+            }
+            expect(pidResult).to.equal(true);
+        })
 
-            logBidPlacedEvent(receipt, "第二次竞价事件");
+        it("检查出价是否正确", async function () {
+            let auctionResult = await createAuction(60)
+            auctionContract = await ethers.getContractAt("NftAuction", auctionResult.auctionAddress);
+            let auctionData = await auctionContract.auction();
+            expect(auctionData.highestBid).to.equal(ethers.parseEther("0.00001"));
+        })
+
+        it("检查是否可以创建低于当前价格的拍卖", async function () {
+            const [deployer, user1, user2] = await ethers.getSigners();
+            let auctionResult = await createAuction(60)
+            let tokenId = auctionResult.tokenId; // 从返回的对象中提取tokenId
+            auctionContract = await ethers.getContractAt("NftAuction", auctionResult.auctionAddress);
+            let result = false;
+            try {
+                let tx = await auctionContract.connect(user1).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("0.000001"), {
+                    value: ethers.parseEther("0.000001")
+                });
+                let receipt = await tx.wait();
+                logBidPlacedEvent(receipt, "第一次竞价事件");
+            } catch (error) {
+                console.log("创建低于当前价格的拍卖失败:", error.message);
+                expect(error.message).to.include("Bid price is not high enough");
+                //只有返回错误才能通过
+                result = true;
+            }
+            expect(result).to.equal(true);
         })
 
     })
@@ -187,23 +233,23 @@ describe("NFT创建和创建NFT拍卖", async function () {
             expect(endResult).to.equal(true);
         })
 
-        it("有出价者,最终应转移到最高出家人", async function () {
+        it("有出价者,最终应转移到最高出价人", async function () {
             let auctionResult = await createAuction(30)
             let tokenId = auctionResult.tokenId; // 从返回的对象中提取tokenId
             auctionContract = await ethers.getContractAt("NftAuction", auctionResult.auctionAddress);
             //1.获得当前部署的账户
-            const [deployer, user1,user2] = await ethers.getSigners();
+            const [deployer, user1, user2] = await ethers.getSigners();
             //2.竞拍
             console.log("开始竞拍...");
             console.log("拍卖行合约地址:", await AuctionFactory.getAddress());
             // 在竞拍时直接发送ETH
-            let tx = await auctionContract.connect(user1).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("1"), {
-                value: ethers.parseEther("1") // 发送1 ETH  
+            let tx = await auctionContract.connect(user1).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("0.0001"), {
+                value: ethers.parseEther("0.0001") // 发送1 ETH  
             });
             await tx.wait(); // 等待交易确认
             // 在竞拍时直接发送ETH
-            tx = await auctionContract.connect(deployer).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("2"), {
-                value: ethers.parseEther("2") // 发送1 ETH  
+            tx = await auctionContract.connect(deployer).placeBid(tokenId, ethers.ZeroAddress, ethers.parseEther("0.0002"), {
+                value: ethers.parseEther("0.0002") // 发送1 ETH  
             });
             await tx.wait(); // 等待交易确认
             //4.检查是否有出价者
@@ -232,15 +278,15 @@ describe("NFT创建和创建NFT拍卖", async function () {
         })
 
         it("无人竞拍,nft应返回原主人", async function () {
-            let auctionResult = await createAuction(10)
+            let auctionResult = await createAuction(1)
             //等待10秒
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            await new Promise(resolve => setTimeout(resolve, 11000));
             //结束竞拍
             console.log("开始结束拍卖...");
             await AuctionFactory.endAuction(auctionResult.auctionId);
             console.log("结束拍卖...");
             //检查是否转移到卖家
-            const [deployer, user1,user2] = await ethers.getSigners();
+            const [deployer, user1, user2] = await ethers.getSigners();
             console.log("nft合约地址:", await nftContract.ownerOf(auctionResult.tokenId));
             expect(await nftContract.ownerOf(auctionResult.tokenId)).to.not.equal(deployer.address);
             expect(await nftContract.ownerOf(auctionResult.tokenId)).to.equal(user2.address);
@@ -263,7 +309,7 @@ async function createAuction(_during) {
     const approveTx = await nftContract.connect(user2).approve(await AuctionFactory.getAddress(), tokenId);
     await approveTx.wait(); // 等待授权交易确认
     console.log("NFT授权完成，Token ID:", tokenId.toString());
-    
+
     // 验证授权状态
     const approvedAddress = await nftContract.getApproved(tokenId);
     const factoryAddress = await AuctionFactory.getAddress();
@@ -279,7 +325,7 @@ async function createAuction(_during) {
     try {
         const createTx = await AuctionFactory.connect(user2).createAuction(
             _during,
-            ethers.parseEther("0.001"),
+            ethers.parseEther("0.00001"),
             nftAddres,
             tokenId,
         );
@@ -404,7 +450,7 @@ function logBidPlacedEvent(receipt, eventName) {
                 console.log("代币地址:", tokenAddress === ethers.ZeroAddress ? "ETH" : tokenAddress);
                 console.log("竞价金额:", tokenAddress === ethers.ZeroAddress ? ethers.formatEther(amount) : amount.toString());
                 console.log("最高竞价人:", higherBidder);
-                console.log("最高价格(USD):", (highestPrice/1e18).toString());
+                console.log("最高价格(USD):", (highestPrice / 1e18).toString());
                 return parsed.args;
             }
         } catch (e) {

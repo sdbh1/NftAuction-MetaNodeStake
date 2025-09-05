@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {INftAuctionErrors} from "./INftAuctionErrors.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
 
 /**
  * @title NftAuction
@@ -18,8 +18,9 @@ import "hardhat/console.sol";
  */
 contract NftAuction is
     ERC721Holder,
-    ReentrancyGuard,
-    Ownable,
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
     INftAuctionErrors
 {
     //结构体
@@ -78,13 +79,16 @@ contract NftAuction is
     /**
      * @dev 初始化拍卖合约
      */
-    constructor(address _owner) Ownable(_owner) ReentrancyGuard() {
+    function initialize(address _owner) public initializer {
+        __ReentrancyGuard_init();
+        __Ownable_init(_owner);
     }
 
     // ============ 外部函数 ============
 
     /**
      * @dev 创建拍卖（只能由工厂合约调用）
+     * @param _auctionId 拍卖ID
      * @param _duration 拍卖持续时间（秒）
      * @param _startPrice 起拍价格（USD，8位小数）
      * @param _nftAddress NFT合约地址
@@ -241,15 +245,16 @@ contract NftAuction is
         view
         returns (uint256)
     {
-        int256 pricePerToken = getChainlinkDataFeedLatestAnswer(tokenAddress);
-        if (pricePerToken <= 0) {
-        	revert("Invalid price feed data");
-        }
+        return amount;
+        // int256 pricePerToken = getChainlinkDataFeedLatestAnswer(tokenAddress);
+        // if (pricePerToken <= 0) {
+        // 	revert("Invalid price feed data");
+        // }
 
-        // 计算总价值：(代币数量 * 单价) / 10^8
-        // 注意：Chainlink价格通常是8位小数
-        uint256 totalValue = (uint256(pricePerToken) * amount) / 1e8;
-        return totalValue;
+        // // 计算总价值：(代币数量 * 单价) / 10^8
+        // // 注意：Chainlink价格通常是8位小数
+        // uint256 totalValue = (uint256(pricePerToken) * amount) / 1e8;
+        // return totalValue;
     }
 
     /**

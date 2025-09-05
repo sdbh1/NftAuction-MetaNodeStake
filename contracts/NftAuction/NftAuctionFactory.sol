@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8;
+pragma solidity ^0.8.30;
 import "./NftAuction.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
-contract NftAuctionFactory is Initializable, ERC721Holder, ReentrancyGuardUpgradeable {
+contract NftAuctionFactory is Initializable, ERC721Holder, ReentrancyGuardUpgradeable, UUPSUpgradeable, OwnableUpgradeable {
 	address[] public auctions;
 
 	// 拍卖ID => 拍卖合约地址
@@ -21,20 +23,24 @@ contract NftAuctionFactory is Initializable, ERC721Holder, ReentrancyGuardUpgrad
 
 	uint256 public nextAuctionId;
 
-	modifier onlyOwner() {
-		require(msg.sender == owner, "Not owner");
-		_;
-	}
-	address owner;
+	// 主合约模板地址
+	address public auctionImplementation;
 
 	function initialize(address _owner) public initializer {
 		require(_owner != address(0), "Invalid _owner address");
 		__ReentrancyGuard_init();
-		owner = _owner; // 工厂合约作为所有者
+		__Ownable_init(_owner); 
 		nextAuctionId = 0;
+		
+		// 部署主合约模板
+		auctionImplementation = address(new NftAuction());
+		
+		// 添加默认的ETH价格预言机配置
+		tokenAddresses.push(address(0)); // ETH地址
+		priceFeedAddresses.push(0x694AA1769357215DE4FAC081bf1f309aDC325306); // Sepolia ETH/USD价格预言机
 	}
 
-	// Create a new auction
+	// Create a new auction using clone pattern
 	function createAuction(
 		uint256 duration,
 		uint256 startPrice,
@@ -43,9 +49,13 @@ contract NftAuctionFactory is Initializable, ERC721Holder, ReentrancyGuardUpgrad
 	) external returns (uint256) {
 		// 先转移NFT到工厂合约
 		IERC721(nftContractAddress).safeTransferFrom(msg.sender, address(this), tokenId);
-		// 创建拍卖合约
-		NftAuction auction = new NftAuction(address(this));
+		
+		// 使用克隆模式创建拍卖合约
+		address auctionClone = Clones.clone(auctionImplementation);
+		NftAuction auction = NftAuction(payable(auctionClone));
 
+		// 初始化克隆的合约
+		auction.initialize(address(this));
 		auction.setPriceFeed(tokenAddresses, priceFeedAddresses);
 		uint256 curAuctionID = nextAuctionId;
 
@@ -107,4 +117,15 @@ contract NftAuctionFactory is Initializable, ERC721Holder, ReentrancyGuardUpgrad
 	function getPriceFeedAddresses() external view returns (address[] memory) {
 		return priceFeedAddresses;
 	}
+
+	/**
+	 * @dev 更新拍卖合约模板地址（只能由所有者调用）
+	 * @param _newImplementation 新的模板合约地址
+	 */
+	function updateAuctionImplementation(address _newImplementation) external onlyOwner {
+		require(_newImplementation != address(0), "Invalid implementation address");
+		auctionImplementation = _newImplementation;
+	}
+
+	function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
